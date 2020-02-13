@@ -5,6 +5,7 @@ import java.util.concurrent.CompletableFuture;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import org.apache.log4j.BasicConfigurator;
 import org.sunbird.Application;
 
 import play.api.Environment;
@@ -26,6 +27,7 @@ public class ApplicationStart {
 	  @Inject
 	  public ApplicationStart(ApplicationLifecycle lifecycle, Environment environment) {
 	  	//instantiate actor system and initialize all the actors
+		  BasicConfigurator.configure();
 		  Application.getInstance().init();
 	    // Shut-down hook
 	    lifecycle.addStopHook(

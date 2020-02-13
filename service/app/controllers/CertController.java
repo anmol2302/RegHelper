@@ -9,7 +9,7 @@ import java.util.concurrent.CompletionStage;
 /**
  * this controller will help you in understanding the process of passing request to Actors with operation.
  */
-public class EchoController extends BaseController {
+public class CertController extends BaseController {
 
     /**
      * this action method will send the request with operation name 'demoTask' to actor(all-actors) package
@@ -20,7 +20,11 @@ public class EchoController extends BaseController {
     public CompletionStage<Result> echo(String id) throws BaseException {
         Request request = new Request();
         request.put("id",id);
-        return handleRequest(request,null,"echo");
+        return handleRequest(request,null,"process");
+    }
+
+    public CompletionStage<Result> certProcess() throws BaseException {
+        return handleRequest(request(),null,"process");
     }
 
 }

@@ -22,6 +22,4 @@ Enter the directory of the example and `mvn clean install`
        "result": {
            "Response": {
                "id": "12"
-           }
-       },
-   }```
+           }}}

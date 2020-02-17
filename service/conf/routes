@@ -3,6 +3,11 @@
 # ~~~~
 
 #Health check
-GET  /health                                  @controllers.health.HealthController.getHealth()
-GET  /:service/health                      @controllers.health.HealthController.getUserOrgServiceHealth(service:String)
-POST /v1/certs/process                            @controllers.CertController.certProcess()
+GET  /health                                         @controllers.health.HealthController.getHealth()
+GET  /:service/health                                @controllers.health.HealthController.getUserOrgServiceHealth(service:String)
+POST /v1/certificate/create                          @controllers.CertController.certProcess()
+
+# Face APIs
+
+POST /v1/register                                 @controllers.face.Register.register()
+POST /v1/identify                               @controllers.face.Identify.identify()

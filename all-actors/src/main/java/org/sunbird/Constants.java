@@ -21,13 +21,13 @@ public class Constants {
 
 
     public static String getCertGenApi() {
-        String api= String.format("http://%s:%s/v1/certs/generate",Envs.getCertGenHost(),Envs.getCertGenPort());
+        String api= String.format("%s/v1/certs/generate","http://cert-service:9000");
         logger.info("Constants:getCertGenApi:api call to generate certificate"+api);
         return api;
     }
 
     public static String getCertAddApi() {
-        String api= String.format("http://%s:%s/certs/v1/registry/add",Envs.getCertRegistryHost(),Envs.getCertRegistryPort());
+        String api= String.format("%s/certs/v1/registry/add","http://cert-registry-service:9000");
         logger.info("Constants:getCertGenApi:api call to deposit certificate"+api);
         return api;
     }

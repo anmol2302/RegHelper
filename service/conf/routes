@@ -12,3 +12,8 @@ GET  /:service/health                      @controllers.health.HealthController.
 
 GET  /echo/:id                                 @controllers.CertController.echo(id:String)
 POST /v1/certs/process                            @controllers.CertController.certProcess()
+
+# Face APIs
+
+POST /v1/register                                 @controllers.face.Register.register()
+POST /v1/identify                               @controllers.face.Identify.identify()

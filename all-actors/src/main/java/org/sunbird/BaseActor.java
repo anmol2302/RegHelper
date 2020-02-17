@@ -1,6 +1,7 @@
 package org.sunbird;
 
 import akka.actor.UntypedAbstractActor;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Logger;
 import org.sunbird.message.IResponseMessage;
 import org.sunbird.message.Localizer;
@@ -13,8 +14,8 @@ import java.util.Locale;
  * @author Amit Kumar
  */
 public abstract class BaseActor extends UntypedAbstractActor {
-
     private Logger logger = Logger.getLogger(BaseActor.class);
+    protected ObjectMapper requestMapper = new ObjectMapper();
     public abstract void onReceive(Request request) throws Throwable;
     protected Localizer localizer = Localizer.getInstance();
 

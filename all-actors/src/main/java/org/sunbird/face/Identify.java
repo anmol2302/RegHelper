@@ -6,10 +6,13 @@ import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
 import org.sunbird.BaseActor;
+import org.sunbird.BaseException;
 import org.sunbird.actor.core.ActorConfig;
+import org.sunbird.message.ResponseCode;
 import org.sunbird.request.Request;
 import org.sunbird.response.Response;
 import scala.concurrent.Future;
@@ -42,9 +45,11 @@ public class Identify extends BaseActor {
         logger.info("Identify face called for image url :: " + imageUrl);
         logger.info("calling detect api.");
         detectFace(imageUrl).andThen(new OnComplete<HttpResponse<JsonNode>>() {
-            public void onComplete(Throwable failure, HttpResponse<JsonNode> result) throws IOException {
+            public void onComplete(Throwable failure, HttpResponse<JsonNode> result) throws IOException, BaseException {
                 if (failure != null) {
                     logger.error("Identify:identify : Exception occurred while detecting face to person : " + failure.getLocalizedMessage(), failure);
+                    Exception ex = new BaseException("BAD REQUEST",failure.getLocalizedMessage(), ResponseCode.BAD_REQUEST.getCode());
+                   sender.tell(ex,self());
                 } else {
                     logger.info("face detected for image : " + imageUrl);
                     if (result != null && result.getStatus() == HttpStatus.SC_OK) {
@@ -53,21 +58,33 @@ public class Identify extends BaseActor {
                         List<String> faceIds = getFaceIds(resultList);
                         logger.info("calling indentify api.");
                         identifyFace(faceIds).andThen(new OnComplete<HttpResponse<JsonNode>>() {
-                            public void onComplete(Throwable failure, HttpResponse<JsonNode> result) throws IOException {
+                            public void onComplete(Throwable failure, HttpResponse<JsonNode> result) throws IOException, BaseException {
                                 if (failure != null) {
                                     logger.error("Identify:identify : Exception occurred while identifying face to person : " + failure.getLocalizedMessage(), failure);
+                                    Exception ex = new BaseException("BAD REQUEST",failure.getLocalizedMessage(), ResponseCode.BAD_REQUEST.getCode());
+                                    sender.tell(ex,self());
                                 } else {
                                     if (result != null && result.getStatus() == HttpStatus.SC_OK) {
                                         String json = result.getBody().getArray().toString();
                                         List<Map<String, Object>> resultList = requestMapper.readValue(json, List.class);
                                         String personId = getUserID(resultList);
-                                        logger.info("sending response for identify endpoint.");
-                                        String userId = FaceUtil.getPersonToUserIdMapper().get(personId);
-                                        Response response = new Response();
-                                        response.put("osid", userId);
-                                        sender.tell(response, self());
+                                        if(StringUtils.isBlank(personId)) {
+                                           Exception ex = new BaseException("USER NOT FOUND","User not found", ResponseCode.BAD_REQUEST.getCode());
+                                            sender.tell(ex,self());
+                                        } else {
+                                            logger.info("sending response for identify endpoint.");
+                                            String userId = FaceUtil.getPersonToUserIdMapper().get(personId);
+                                            Response response = new Response();
+                                            response.put("osid", userId);
+                                            sender.tell(response, self());
+                                        }
                                     } else {
                                         logger.error("Register:register:exception occurred:");
+                                        Map<String,String> errorMap =requestMapper.readValue(result.getBody().getObject().get("error").toString(), Map.class);
+                                        String code = errorMap.get("code");
+                                        String message = errorMap.get("message");
+                                        Exception ex = new BaseException(code,message, ResponseCode.BAD_REQUEST.getCode());
+                                        sender.tell(ex,self());
                                     }
                                 }
                             }
@@ -75,6 +92,11 @@ public class Identify extends BaseActor {
 
                     } else {
                         logger.error("Register:register:exception occurred:");
+                        Map<String,String> errorMap =requestMapper.readValue(result.getBody().getObject().get("error").toString(), Map.class);
+                        String code = errorMap.get("code");
+                        String message = errorMap.get("message");
+                        Exception ex = new BaseException(code,message, ResponseCode.BAD_REQUEST.getCode());
+                        sender.tell(ex,self());
                     }
                 }
             }
@@ -83,26 +105,29 @@ public class Identify extends BaseActor {
     }
 
     private String getUserID(List<Map<String, Object>> resultList) {
-        List<Map<String, Object>> candidates = new ArrayList<>();
-        resultList.stream().forEach(result -> {
-            if (CollectionUtils.isNotEmpty((List<Map<String, Object>>) result.get("candidates"))) {
-                candidates.addAll((List<Map<String, Object>>) result.get("candidates"));
-            }
-        });
-        List<Double> confidenceList = new ArrayList<>();
-        candidates.stream().forEach(candidate -> {
-
-            confidenceList.add(Double.valueOf(candidate.get("confidence") + ""));
-        });
-        Collections.sort(confidenceList, Collections.reverseOrder());
-        double highestConfidenceLevel = confidenceList.get(0);
         String personId = "";
+        try {
+            List<Map<String, Object>> candidates = new ArrayList<>();
+            resultList.stream().forEach(result -> {
+                if (CollectionUtils.isNotEmpty((List<Map<String, Object>>) result.get("candidates"))) {
+                    candidates.addAll((List<Map<String, Object>>) result.get("candidates"));
+                }
+            });
+            List<Double> confidenceList = new ArrayList<>();
+            candidates.stream().forEach(candidate -> {
 
-        for (Map<String, Object> candidate : candidates) {
-            if (highestConfidenceLevel == (Double.valueOf(candidate.get("confidence") + ""))) {
-                personId = (String) candidate.get("personId");
-                break;
+                confidenceList.add(Double.valueOf(candidate.get("confidence") + ""));
+            });
+            Collections.sort(confidenceList, Collections.reverseOrder());
+            double highestConfidenceLevel = confidenceList.get(0);
+            for (Map<String, Object> candidate : candidates) {
+                if (highestConfidenceLevel == (Double.valueOf(candidate.get("confidence") + ""))) {
+                    personId = (String) candidate.get("personId");
+                    break;
+                }
             }
+        } catch (Exception ex) {
+            logger.error("Exception occurred while fetching userId ",ex);
         }
         return personId;
     }

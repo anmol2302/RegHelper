@@ -52,10 +52,24 @@ public class FaceUtil {
 
     public static HttpResponse<JsonNode> makeSyncPostCall(String apiToCall, String requestBody) throws UnirestException {
         logger.info("logger:makeSyncPostCall:get request to make post call for API:"+apiToCall+":"+requestBody);
+        return makeSyncPostCall(apiToCall,requestBody,headers);
+    }
+
+    public static HttpResponse<JsonNode> makeSyncPostCall(String apiToCall, String requestBody, Map<String,String> headers) throws UnirestException {
+        logger.info("logger:makeSyncPostCall:get request to make post call for API:"+apiToCall+":"+requestBody);
         HttpResponse<JsonNode>jsonResponse
                 = Unirest.post(apiToCall)
                 .headers(headers)
                 .body(requestBody)
+                .asJson();
+        return jsonResponse;
+    }
+
+    public static HttpResponse<JsonNode> makeSyncGetCall(String apiToCall, Map<String,String> headers) throws UnirestException {
+        logger.info("logger:makeSyncPostCall:get request to make get call for API:"+apiToCall);
+        HttpResponse<JsonNode>jsonResponse
+                = Unirest.get(apiToCall)
+                .headers(headers)
                 .asJson();
         return jsonResponse;
     }

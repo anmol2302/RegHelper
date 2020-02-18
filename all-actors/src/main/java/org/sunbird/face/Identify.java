@@ -5,6 +5,7 @@ import akka.dispatch.OnComplete;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
 import org.sunbird.BaseActor;
@@ -29,6 +30,10 @@ public class Identify extends BaseActor {
 
     @Override
     public void onReceive(Request request) throws Throwable {
+        if (MapUtils.isEmpty(FaceUtil.getPersonToUserIdMapper()) && MapUtils.isEmpty(FaceUtil.getUserToPersonIdMapper())) {
+            logger.info("Identify:onReceive: updating inner map.");
+            FaceUtil.initInMemoryMap();
+        }
         identify(request, sender());
     }
 

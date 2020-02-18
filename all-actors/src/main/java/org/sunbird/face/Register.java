@@ -3,6 +3,7 @@ package org.sunbird.face;
 import akka.dispatch.OnComplete;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
@@ -30,6 +31,10 @@ public class Register extends BaseActor {
 
     @Override
     public void onReceive(Request request) throws Throwable {
+        if (MapUtils.isEmpty(FaceUtil.getPersonToUserIdMapper()) && MapUtils.isEmpty(FaceUtil.getUserToPersonIdMapper())) {
+            logger.info("Identify:onReceive: updating inner map.");
+            FaceUtil.initInMemoryMap();
+        }
         Response response = new Response();
         response.put("result", Constants.SUCCESS);
         sender().tell(response, self());
@@ -98,8 +103,9 @@ public class Register extends BaseActor {
     }
 
     private void updateUserPersonMap(String userId, String personId) {
-        FaceUtil.getPersonToUserIdMapper().put(personId, userId);
-        FaceUtil.getUserToPersonIdMapper().put(userId, personId);
+        FaceUtil.getPersonToUserIdMapper().put(personId+"", userId);
+        FaceUtil.getUserToPersonIdMapper().put(userId, personId+"");
+        FaceUtil.updateCassandra(userId, personId.toString());
     }
 
     private Future<HttpResponse<JsonNode>> createPerson(String userId) {

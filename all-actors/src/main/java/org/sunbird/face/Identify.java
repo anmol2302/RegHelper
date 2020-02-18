@@ -2,6 +2,7 @@ package org.sunbird.face;
 
 import akka.actor.ActorRef;
 import akka.dispatch.OnComplete;
+import akka.pattern.Patterns;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import org.apache.commons.collections4.CollectionUtils;
@@ -19,6 +20,7 @@ import scala.concurrent.Future;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 import static akka.dispatch.Futures.future;
 
@@ -74,9 +76,8 @@ public class Identify extends BaseActor {
                                         } else {
                                             logger.info("sending response for identify endpoint.");
                                             String userId = FaceUtil.getPersonToUserIdMapper().get(personId);
-                                            Response response = new Response();
-                                            response.put("osid", userId);
-                                            sender.tell(response, self());
+                                            Future<Response> userData = getUserDetails(userId);
+                                            Patterns.pipe(userData,getContext().dispatcher()).to(sender);
                                         }
                                     } else {
                                         logger.error("Register:register:exception occurred:");
@@ -102,6 +103,26 @@ public class Identify extends BaseActor {
             }
         }, getContext().dispatcher());
 
+    }
+
+    private Future<Response> getUserDetails(String userId) {
+        String uri = "https://devcon.sunbirded.org/api/reg/Visitor/"+userId;
+        Map<String,String> headers = new HashMap<>();
+        headers.put("Content-Type","application/json");
+        headers.put("Authorization","Bearer "+System.getenv("devcon_api_key"));
+        Future<Response> f = future(() -> {
+            logger.info("Making call to registry API for userId : "+userId);
+            HttpResponse<JsonNode> result = FaceUtil.makeSyncGetCall(uri,headers);
+            String json = result.getBody().getArray().toString();
+            List<Map<String, Object>> resultList = requestMapper.readValue(json, List.class);
+            Map<String, Object> resultMap = (Map<String, Object>)resultList.get(0).get("result");
+            Map<String, Object> visitor = (Map<String, Object>)resultMap.get("Visitor");
+            Response response = new Response();
+            response.putAll(visitor);
+            return response;
+        }, getContext().dispatcher());
+
+        return f;
     }
 
     private String getUserID(List<Map<String, Object>> resultList) {

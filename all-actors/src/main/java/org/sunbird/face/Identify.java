@@ -106,14 +106,17 @@ public class Identify extends BaseActor {
     }
 
     private Future<Response> getUserDetails(String userId) {
+        logger.info("fetching data for userId ::: "+userId);
         String uri = "https://devcon.sunbirded.org/api/reg/Visitor/"+userId;
         Map<String,String> headers = new HashMap<>();
         headers.put("Content-Type","application/json");
         headers.put("Authorization","Bearer "+System.getenv("devcon_api_key"));
+        logger.info("devcon_api_key  "+System.getenv("devcon_api_key"));
         Future<Response> f = future(() -> {
             logger.info("Making call to registry API for userId : "+userId);
             HttpResponse<JsonNode> result = FaceUtil.makeSyncGetCall(uri,headers);
             String json = result.getBody().getArray().toString();
+            logger.info("got user data for userId :: "+json);
             List<Map<String, Object>> resultList = requestMapper.readValue(json, List.class);
             Map<String, Object> resultMap = (Map<String, Object>)resultList.get(0).get("result");
             Map<String, Object> visitor = (Map<String, Object>)resultMap.get("Visitor");

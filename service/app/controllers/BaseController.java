@@ -1,16 +1,13 @@
 package controllers;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import java.util.function.Function;
-import javax.inject.Inject;
-
 import akka.actor.ActorRef;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
 import org.sunbird.Application;
 import org.sunbird.BaseException;
 import org.sunbird.message.Localizer;
 import org.sunbird.request.Request;
+import play.libs.Json;
 import play.libs.concurrent.HttpExecutionContext;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -18,6 +15,10 @@ import play.mvc.Results;
 import utils.JsonKey;
 import utils.RequestMapper;
 import utils.RequestValidatorFunction;
+
+import javax.inject.Inject;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 /**
  * This controller we can use for writing some common method to handel api request.
@@ -64,17 +65,18 @@ public class BaseController extends Controller {
      * @param operation
      * @return
      */
-    public CompletionStage<Result> handleRequest(Request request, RequestValidatorFunction validatorFunction, String operation) {
+    public CompletionStage<Result> handleRequest(play.mvc.Http.Request req,Request request, RequestValidatorFunction validatorFunction, String operation) {
         try {
             if (validatorFunction != null) {
                 validatorFunction.apply(request);
             }
-            return new RequestHandler().handleRequest(request, httpExecutionContext, operation);
+            return new RequestHandler().handleRequest(request, httpExecutionContext, operation,req);
         } catch (BaseException ex) {
-            return RequestHandler.handleFailureResponse(ex, httpExecutionContext);
+            return CompletableFuture.supplyAsync(() -> StringUtils.EMPTY)
+                    .thenApply(result -> badRequest(Json.toJson(RequestHandler.prepareFailureMessage(ex,req))));
         } catch (Exception ex) {
-            return RequestHandler.handleFailureResponse(ex, httpExecutionContext);
-        }
+            return CompletableFuture.supplyAsync(() -> StringUtils.EMPTY)
+                    .thenApply(result -> internalServerError(Json.toJson(RequestHandler.prepareFailureMessage(ex,req))));        }
     }
 
     /**
@@ -94,31 +96,15 @@ public class BaseController extends Controller {
             if (validatorFunction != null) {
                 validatorFunction.apply(request);
             }
-            return new RequestHandler().handleRequest(request, httpExecutionContext, operation);
+            return new RequestHandler().handleRequest(request, httpExecutionContext, operation,req);
         } catch (BaseException ex) {
-            return RequestHandler.handleFailureResponse(ex, httpExecutionContext);
+            return CompletableFuture.supplyAsync(() -> StringUtils.EMPTY)
+                    .thenApply(result -> badRequest(Json.toJson(RequestHandler.prepareFailureMessage(ex,req))));
         } catch (Exception ex) {
-            return RequestHandler.handleFailureResponse(ex, httpExecutionContext);
+            return CompletableFuture.supplyAsync(() -> StringUtils.EMPTY)
+                    .thenApply(result -> internalServerError(Json.toJson(RequestHandler.prepareFailureMessage(ex,req))));
         }
     }
-
-    /**
-     * this method is used to handle the only GET requests.
-     *
-     * @param req
-     * @param operation
-     * @return
-     */
-    public CompletionStage<Result> handleRequest(Request req, String operation) {
-        try {
-            return new RequestHandler().handleRequest(req, httpExecutionContext, operation);
-        } catch (BaseException ex) {
-            return RequestHandler.handleFailureResponse(ex, httpExecutionContext);
-        } catch (Exception ex) {
-            return RequestHandler.handleFailureResponse(ex, httpExecutionContext);
-        }
-    }
-
 
 
     public CompletionStage<Result> handleRequest() {
@@ -134,37 +120,6 @@ public class BaseController extends Controller {
      * @return
      */
     public CompletionStage<Result> handleLogRequest() {
-//        startTrace("handleLogRequest");
-//        Response response = new Response();
-//        Request request = null;
-//        try {
-//            request = (Request) RequestMapper.mapRequest(request(), Request.class);
-//        } catch (Exception ex) {
-//            ProjectLogger.log(String.format("%s:%s:exception occurred in mapping request", this.getClass().getSimpleName(), "handleLogRequest"), LoggerEnum.ERROR.name());
-//            return RequestHandler.handleFailureResponse(ex, httpExecutionContext);
-//        }
-//
-//        if (LogValidator.isLogParamsPresent(request)) {
-//            if (LogValidator.isValidLogLevelPresent((String) request.get(JsonKey.LOG_LEVEL))) {
-//                ProjectLogger.setUserOrgServiceProjectLogger(
-//                        (String) request.get(JsonKey.LOG_LEVEL));
-//                response.put(JsonKey.ERROR, false);
-//                response.put(
-//                        JsonKey.MESSAGE,
-//                        "Log Level successfully set to " + request.get(JsonKey.LOG_LEVEL));
-//            } else {
-//                List<Enum> supportedLogLevelsValues = new ArrayList<>(EnumSet.allOf(LoggerEnum.class));
-//                response.put(JsonKey.ERROR, true);
-//                response.put(
-//                        JsonKey.MESSAGE,
-//                        "Valid Log Levels are " + Arrays.asList(supportedLogLevelsValues.toArray()));
-//            }
-//        } else {
-//            response.put(JsonKey.ERROR, true);
-//            response.put(
-//                    JsonKey.MESSAGE, "Missing Mandatory Request Param " + JsonKey.LOG_LEVEL);
-//        }
-
         CompletableFuture<String> cf = new CompletableFuture<>();
         cf.complete(dummyResponse);
         return cf.thenApplyAsync(Results::ok);

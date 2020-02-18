@@ -18,9 +18,7 @@ public class CertController extends BaseController {
      * @throws BaseException
      */
     public CompletionStage<Result> echo(String id) throws BaseException {
-        Request request = new Request();
-        request.put("id",id);
-        return handleRequest(request,null,"process");
+        return handleRequest(request(),null,"process");
     }
 
     public CompletionStage<Result> certProcess() throws BaseException {

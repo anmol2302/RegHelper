@@ -59,6 +59,7 @@ public class RequestHandler extends BaseController {
      * @param exception
      * @return
      */
+
     public static Result handleFailureResponse(
             Object exception, HttpExecutionContext httpExecutionContext, play.mvc.Http.Request req) {
         Response response = prepareFailureMessage(exception,req);

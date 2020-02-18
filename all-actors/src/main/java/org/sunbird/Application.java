@@ -3,6 +3,7 @@ package org.sunbird;
 import akka.actor.ActorRef;
 import org.sunbird.actor.core.ActorCache;
 import org.sunbird.actor.core.ActorService;
+import org.sunbird.cassandra.CassandraConnection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,9 +15,9 @@ import java.util.List;
 public class Application {
     private final static String actorSystemName = "thisActorSystem";
     private static Application instance = new Application();
-
     // private constructor restricted to this class itself
     private Application() {
+
     }
 
     // static method to create instance of ActorService class
@@ -29,6 +30,7 @@ public class Application {
         List<String> actorClassPaths = new ArrayList<>();
         actorClassPaths.add("org.sunbird");
         ActorService.getInstance().init(actorSystemName, actorClassPaths);
+        CassandraConnection.getInstance();
     }
 
 

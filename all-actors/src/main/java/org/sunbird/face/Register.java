@@ -79,7 +79,7 @@ public class Register extends BaseActor {
                                                 if (result != null && result.getStatus() == HttpStatus.SC_OK) {
                                                     Response response = new Response();
                                                     response.put("result", Constants.SUCCESS);
-                                                    sender().tell(response, self());
+                                                    sender.tell(response, self());
 
                                                     logger.info("face add success for personId ::" + personId);
                                                     updateUserPersonMap(userId, personId);
@@ -121,7 +121,7 @@ public class Register extends BaseActor {
                         if (result != null && result.getStatus() == HttpStatus.SC_OK) {
                             Response response = new Response();
                             response.put("result", Constants.SUCCESS);
-                            sender().tell(response, self());
+                            sender.tell(response, self());
 
                             logger.info("Updating user for userId:" + userId);
                             updateUserPersonMap(userId, personId);

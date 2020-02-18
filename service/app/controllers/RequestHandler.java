@@ -57,12 +57,12 @@ public class RequestHandler extends BaseController {
     public static CompletionStage<Result> handleFailureResponse(Object exception, HttpExecutionContext httpExecutionContext) {
 
         Response response = new Response();
-        CompletableFuture<String> future = new CompletableFuture<>();
+        CompletableFuture<JsonNode> future = new CompletableFuture<>();
         if (exception instanceof BaseException) {
             BaseException ex = (BaseException) exception;
             response.setResponseCode(ex.getCode());
             response.put(JsonKey.MESSAGE, ex.getMessage());
-            future.complete(jsonify(response));
+            future.complete(Json.toJson(response));
             if (ex.getResponseCode() == Results.badRequest().status()) {
                 return future.thenApplyAsync(Results::badRequest, httpExecutionContext.current());
             } else {
@@ -71,7 +71,7 @@ public class RequestHandler extends BaseController {
         } else {
             response.setResponseCode(IResponseMessage.SERVER_ERROR);
             response.put(JsonKey.MESSAGE,localizerObject.getMessage(IResponseMessage.INTERNAL_ERROR,null));
-            future.complete(jsonify(response));
+            future.complete(Json.toJson(response));
             return future.thenApplyAsync(Results::internalServerError, httpExecutionContext.current());
         }
     }

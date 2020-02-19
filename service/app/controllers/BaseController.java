@@ -93,6 +93,7 @@ public class BaseController extends Controller {
     public CompletionStage<Result> handleRequest(play.mvc.Http.Request req, RequestValidatorFunction validatorFunction, String operation) {
         try {
             Request request = (Request) RequestMapper.mapRequest(req, Request.class);
+            request.setTimeout(5);
             if (validatorFunction != null) {
                 validatorFunction.apply(request);
             }

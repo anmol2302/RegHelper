@@ -106,7 +106,7 @@ public class Identify extends BaseActor {
 
     private Future<Response> getUserDetails(String userId) {
         logger.info("fetching data for userId ::: "+userId);
-        String uri = "https://devcon.sunbirded.org/api/reg/Visitor/"+"1-63c8bfe5-e5ca-4f3b-bb1a-46ac41f3b917";
+        String uri = "https://devcon.sunbirded.org/api/reg/Visitor/"+userId;
         Map<String,String> headers = new HashMap<>();
         headers.put("Content-Type","application/json");
         headers.put("Authorization","Bearer "+System.getenv("devcon_api_key"));

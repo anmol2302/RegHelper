@@ -20,7 +20,6 @@ import scala.concurrent.Future;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.Callable;
 
 import static akka.dispatch.Futures.future;
 
@@ -107,7 +106,7 @@ public class Identify extends BaseActor {
 
     private Future<Response> getUserDetails(String userId) {
         logger.info("fetching data for userId ::: "+userId);
-        String uri = "https://devcon.sunbirded.org/api/reg/Visitor/"+userId;
+        String uri = "https://devcon.sunbirded.org/api/reg/Visitor/"+"1-63c8bfe5-e5ca-4f3b-bb1a-46ac41f3b917";
         Map<String,String> headers = new HashMap<>();
         headers.put("Content-Type","application/json");
         headers.put("Authorization","Bearer "+System.getenv("devcon_api_key"));
@@ -117,14 +116,18 @@ public class Identify extends BaseActor {
             HttpResponse<JsonNode> result = FaceUtil.makeSyncGetCall(uri,headers);
             String json = result.getBody().getArray().toString();
             logger.info("got user data for userId :: "+json);
-            List<Map<String, Object>> resultList = requestMapper.readValue(json, List.class);
-            Map<String, Object> resultMap = (Map<String, Object>)resultList.get(0).get("result");
-            Map<String, Object> visitor = (Map<String, Object>)resultMap.get("Visitor");
             Response response = new Response();
-            response.putAll(visitor);
+            try {
+                List<Map<String, Object>> resultList = requestMapper.readValue(json, List.class);
+                Map<String, Object> resultMap = (Map<String, Object>) resultList.get(0).get("result");
+                Map<String, Object> visitor = (Map<String, Object>) resultMap.get("Visitor");
+                response.putAll(visitor);
+                return response;
+            } catch (Exception ex) {
+                logger.error("Exception occurred while reading data from registry.",ex);
+            }
             return response;
         }, getContext().dispatcher());
-
         return f;
     }
 

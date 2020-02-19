@@ -75,7 +75,10 @@ public class IdentifyMultiple extends BaseActor {
                                             personIds.stream().forEach(
                                                     personId -> {
                                                         if (StringUtils.isNotBlank(personId)) {
-                                                            osids.add(FaceUtil.getPersonToUserIdMapper().get(personId));
+                                                            String osid = FaceUtil.getPersonToUserIdMapper().get(personId);
+                                                            if (StringUtils.isNotBlank(osid)) {
+                                                                osids.add(osid);
+                                                            }
                                                         }
                                                     }
                                             );

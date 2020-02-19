@@ -18,7 +18,6 @@ import org.sunbird.response.Response;
 import scala.concurrent.Future;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
 

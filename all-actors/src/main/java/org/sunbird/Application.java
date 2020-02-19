@@ -4,6 +4,7 @@ import akka.actor.ActorRef;
 import org.sunbird.actor.core.ActorCache;
 import org.sunbird.actor.core.ActorService;
 import org.sunbird.cassandra.CassandraConnection;
+import org.sunbird.face.FaceUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,7 @@ public class Application {
         actorClassPaths.add("org.sunbird");
         ActorService.getInstance().init(actorSystemName, actorClassPaths);
         CassandraConnection.getInstance();
+        FaceUtil.initInMemoryMap();
     }
 
 

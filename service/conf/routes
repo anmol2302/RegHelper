@@ -11,3 +11,4 @@ POST /v1/certificate/create                          @controllers.CertController
 
 POST /v1/register                                 @controllers.face.Register.register()
 POST /v1/identify                               @controllers.face.Identify.identify()
+POST /v1/identify/multiple                               @controllers.face.IdentifyMultiple.identifyMultiple()

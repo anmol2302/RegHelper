@@ -83,7 +83,11 @@ public class IdentifyMultiple extends BaseActor {
                                             logger.error("Exception occurred while fetching personids",ex);
                                         }
                                         Response response = new Response();
-                                        response.put("osids" , osids);
+                                        if (CollectionUtils.isNotEmpty(osids)) {
+                                            response.put("osids" , osids);
+                                        } else {
+                                            response.put("osids" , new ArrayList<>());
+                                        }
                                         sender.tell(response,self());
                                     } else {
                                         logger.error("IdentifyMultiple::identify:exception occurred:");
